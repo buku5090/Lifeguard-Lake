@@ -1,0 +1,553 @@
+#include<windows.h>
+#include<iostream>
+#include <gl/freeglut.h>
+#include <stdio.h>      /* printf, scanf, puts, NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>
+#include <cstdlib>
+#include <string>
+using namespace std;
+
+
+double k = 0.0;
+double h = 100.0;
+double pos_x_human = 400.0;
+double pos_y_human = 300.0;
+double scor = 0.0;
+double i = 0.0;
+double alpha = 1.0;
+int nr_max_ppl = 3;
+int nr_ppl = 0;
+int money = 0;
+int opt;
+double speed = 1.0;
+double cost_speed = 30;
+double cost_capacity = 40;
+int ppl_saved = 0;
+double timer_ppl = 1470;
+double timer_increase_rate = 0.5;
+
+
+void init(void)
+{
+	glClearColor(0.001, 0.53, 0.98, 0.0);
+	//glClearColor(1.0, 1.0, 1.0, 0.0);
+	glMatrixMode(GL_PROJECTION);
+	glOrtho(-20.0, 1500, 0.0, 900.0, -1.0, 1.0);
+
+}
+
+void human_appears() {
+	glPushMatrix();
+	glTranslated(pos_x_human, pos_y_human, 0.0);
+	glLineWidth(4); //mana stanga
+	glColor3f(0.1f, 0.1f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(pos_x_human - 15.0, pos_y_human + 15.0);
+	glVertex2f(pos_x_human, pos_y_human);
+	glEnd();
+
+
+	glLineWidth(4); //mana dreapta
+	glColor3f(0.1f, 0.1f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(pos_x_human, pos_y_human);
+	glVertex2f(pos_x_human + 15.0, pos_y_human + 15.0);
+	glEnd();
+
+	glColor4f(1.0f, 0.5f, 0.0f, 0.0f);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(pos_x_human - 7, pos_y_human + 7);
+	glVertex2f(pos_x_human, pos_y_human);
+	glVertex2f(pos_x_human + 7, pos_y_human + 7);
+	glEnd();
+	glPopMatrix();
+}
+
+void generate_coord_human() {
+	pos_y_human = rand() % 320 + 1;
+	pos_x_human = rand() % 740 + 1;
+	cout << "Scor: " << scor << endl;
+	cout << "Numar oameni la bord: " << nr_ppl << endl;
+	cout << "Capacitate maxima: " << nr_max_ppl << endl;
+	cout << "Bani: " << money << endl << endl;
+}
+
+void RenderString(float x, float y, void* font, unsigned char* s)
+{
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glRasterPos2f(x, y);
+
+	glutBitmapString(font, s);
+
+}
+
+void TimerPeopleDrowning(int) {
+	if (timer_ppl > 1200) {
+		timer_ppl -= timer_increase_rate;
+		
+		if (scor > 17 && scor < 25) {
+			timer_increase_rate = 0.7;
+		}
+		else if (scor >= 25 && scor <= 50) {
+			timer_increase_rate = 0.9;
+		}
+		else if (scor > 50 && scor < 61) {
+			timer_increase_rate = 1.2;
+		}
+		else if (scor > 60) {
+			timer_increase_rate = 1.5;
+		}
+	}
+	else {
+		cout << "Un om a murit. -50 score si -10 monezi." << endl;
+		scor -= 50;
+		money = -10;
+		timer_ppl = 1470;
+		generate_coord_human();
+	}
+}
+
+void deseneazaScena(void)
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glColor3f(0.03, 0.61, 0.16);
+	glBegin(GL_POLYGON); //iarba
+	glVertex2i(-30, 900);
+	glVertex2i(-30, 700);
+	glVertex2i(1500, 700);
+	glVertex2i(1500, 900);
+	glEnd();
+
+	RenderString(100.0f, 825.0f, GLUT_BITMAP_TIMES_ROMAN_24, (unsigned char*)"Salveaza oamenii si du-i in port! ");
+	//-----------------------------------copac
+	glLineWidth(7);
+	glColor3f(0.4, 0.27, 0.11);
+	glBegin(GL_LINES);
+	glVertex2f(1300, 830);
+	glVertex2f(1300, 850);
+	glEnd();
+
+	glColor3f(0.07, 0.36, 0.12);
+	glBegin(GL_TRIANGLES);
+	glVertex2i(1280, 850);
+	glVertex2i(1320, 850);
+	glVertex2i(1300, 895);
+	glEnd();
+
+	//-----------------------------------copac2
+	glLineWidth(7);
+	glColor3f(0.4, 0.27, 0.11);
+	glBegin(GL_LINES);
+	glVertex2f(130, 710);
+	glVertex2f(130, 730);
+	glEnd();
+
+	glColor3f(0.07, 0.36, 0.12);
+	glBegin(GL_TRIANGLES);
+	glVertex2i(110, 730);
+	glVertex2i(150, 730);
+	glVertex2i(130, 775);
+	glEnd();
+
+
+	//-----------------------------------casa 
+	glColor3f(0.0, 0.4, 0.4);
+	glBegin(GL_POLYGON);
+	glVertex2i(1200, 820); //colt stanga jos
+	glVertex2i(1230, 820); //colt dreapta jos
+	glVertex2i(1230, 850); //colt dreapta sus
+	glVertex2i(1200, 850); //colt stanga sus
+	glEnd();
+	glColor3f(0.6, 0.29, 0.0);
+	glBegin(GL_TRIANGLES);
+	glVertex2i(1200, 850);
+	glVertex2i(1230, 850);
+	glVertex2i(1215, 870);
+	glEnd();
+	glColor3f(0.0, 0.8, 0.4);
+	glBegin(GL_POLYGON); // usa casa
+	glVertex2i(1212, 820); //colt stanga jos + 12
+	glVertex2i(1218, 820); //colt dreapta jos + 18
+	glVertex2i(1218, 840); //colt dreapta sus + h= 20
+	glVertex2i(1212, 840); //colt stanga sus + h = 20
+	glEnd();
+
+	//----------------------------------- shop
+	glColor3f(0.2f, 0.0f, 0.0f);
+	glBegin(GL_POLYGON);
+	glVertex2i(1180, 700); //colt stanga jos
+	glVertex2i(1180, 780); //colt dreapta jos
+	glVertex2i(1050, 780); //colt dreapta sus
+	glVertex2i(1050, 700); //colt stanga sus
+	glEnd();
+
+	//----------------------------------- logo shop
+	glLineWidth(4); // S1
+	glColor3f(0.0f, 0.33f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(1075, 760);
+	glVertex2f(1155, 760);
+	glEnd();
+
+	glLineWidth(4); // S2
+	glColor3f(0.0f, 0.33f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(1075, 760);
+	glVertex2f(1075, 740);
+	glEnd();
+
+	glLineWidth(4); // S3
+	glColor3f(0.0f, 0.33f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(1075, 740);
+	glVertex2f(1155, 740);
+	glEnd();
+
+	glLineWidth(4); // S4
+	glColor3f(0.0f, 0.33f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(1155, 740);
+	glVertex2f(1155, 720);
+	glEnd();
+
+	glLineWidth(4); // S5
+	glColor3f(0.0f, 0.33f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(1075, 720);
+	glVertex2f(1155, 720);
+	glEnd();
+
+	glLineWidth(3); // S - 1 linie
+	glColor3f(0.5f, 0.5f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(1100, 710);
+	glVertex2f(1100, 770);
+	glEnd();
+
+	glLineWidth(3); // S - a 2-a linie
+	glColor3f(0.5f, 0.5f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(1130, 710);
+	glVertex2f(1130, 770);
+	glEnd();
+	//----------------------------------- port 
+	glColor3f(0.2f, 0.0f, 0.0f);
+	glBegin(GL_POLYGON);
+	glVertex2i(680, 700); //colt stanga jos
+	glVertex2i(680, 750); //colt dreapta jos
+	glVertex2i(750, 750); //colt dreapta sus
+	glVertex2i(750, 700); //colt stanga sus
+	glEnd();
+
+	//----------------------------------- casa port
+	glColor3f(0.0, 0.4, 0.4);
+	glBegin(GL_POLYGON);
+	glVertex2i(710, 720); //colt stanga jos
+	glVertex2i(710, 760); //colt dreapta jos
+	glVertex2i(740, 760); //colt dreapta sus
+	glVertex2i(740, 720); //colt stanga sus
+	glEnd();
+
+	glColor3f(0.6, 0.29, 0.0);// acoperis
+	glBegin(GL_TRIANGLES);
+	glVertex2i(700, 760);
+	glVertex2i(750, 760);
+	glVertex2i(725, 780);
+	glEnd();
+
+	glColor3f(0.0, 0.8, 0.4);
+	glBegin(GL_POLYGON); // usa casa
+	glVertex2i(720, 720); //colt stanga jos + 12
+	glVertex2i(730, 720); //colt dreapta jos + 18
+	glVertex2i(730, 740); //colt dreapta sus + h= 20
+	glVertex2i(720, 740); //colt stanga sus + h = 20
+	glEnd();
+
+	//----------------------------------- manere port
+	glColor3f(0.2f, 0.0f, 0.0f);
+	glBegin(GL_POLYGON);
+	glVertex2i(710, 680); //colt stanga jos
+	glVertex2i(740, 680); //colt dreapta jos
+	glVertex2i(740, 700); //colt dreapta sus
+	glVertex2i(710, 700); //colt stanga sus
+	glEnd();
+
+	glLineWidth(3);
+	glColor3f(0.33, 0.33, 0.34);
+	glBegin(GL_LINES);
+	glVertex2f(710, 699);
+	glVertex2f(740, 699);
+	glEnd();
+
+	glLineWidth(3);
+	glColor3f(0.33f, 0.33f, 0.34f);
+	glBegin(GL_LINES);
+	glVertex2f(710, 692);
+	glVertex2f(740, 692);
+	glEnd();
+
+	glLineWidth(3);
+	glColor3f(0.33f, 0.33f, 0.34f);
+	glBegin(GL_LINES);
+	glVertex2f(710, 685);
+	glVertex2f(740, 685);
+	glEnd();
+
+	RenderString(1220.0f, 770.0f, GLUT_BITMAP_TIMES_ROMAN_24, (unsigned char*)"Timp pentru a salva persoana");
+	// -------------------------------- timer
+	glLineWidth(7);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glBegin(GL_LINES);
+	glVertex2f(1200.0f, 750.0f);
+	glVertex2f(timer_ppl, 750.0f);
+	glutTimerFunc(1000, TimerPeopleDrowning, 0);
+	glEnd();
+
+	//------------------------------------- apar oamenii
+	human_appears();
+
+	//--------------------------------------------- barca 
+	glPushMatrix();
+
+	//glTranslated(420, 80, 0);
+	glTranslated(k, h, 0.0);
+	//glTranslated(-420, -80, 0);
+
+	glColor3f(0.015, 0.007, 0.58);
+	glBegin(GL_POLYGON); //barca 
+	glVertex2f(300, 100);
+	glVertex2f(500, 100);
+	glVertex2f(450, 70);
+	glVertex2f(350, 70);
+	glEnd();
+
+
+	glColor3f(0.67f, 0.05f, 0.001f);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(300, 105);
+	glVertex2f(400, 105);
+	glVertex2f(400, 160);
+	glEnd();
+
+	glLineWidth(5);
+	glColor3f(0.33, 0.33, 0.34);
+	glBegin(GL_LINES);
+	glVertex2f(420, 100);
+	glVertex2f(420, 155);
+	glEnd();
+
+	glLineWidth(5);
+	glColor3f(0.33, 0.33, 0.34);
+	glBegin(GL_LINES);
+	glVertex2f(440, 100);
+	glVertex2f(440, 155);
+	glEnd();
+
+	glPopMatrix();
+	//----------------------------------------------------
+	//RenderString(900.0f, 725.0f, GLUT_BITMAP_TIMES_ROMAN_24, (unsigned char*)"Barca este plina! Du-te la port! ");
+	if (nr_ppl == nr_max_ppl) {
+		RenderString(900.0f, 825.0f, GLUT_BITMAP_TIMES_ROMAN_24, (unsigned char*)"Barca este plina! Du-te la port! ");
+	}
+
+	if (h > 525 && k > 260 && k < 410) {
+		scor = scor + nr_ppl * 2;
+		money = money + 10 * nr_ppl;
+		cout << "Bravo! Ai facut " << 10 * nr_ppl << " monede si acum ai " << money << endl;
+		nr_ppl = 0;
+
+	}
+
+	if (h > 525 && k > 655 && k < 785) {
+		cout << endl << "---- BUN VENIT LA MAGAZIN! ----" << endl;
+		cout << "Imbunatateste-ti barcuta! Momentan ai " << money << " monede!" << endl;
+		cout << "Viteza ta este: " << speed << " noduri pe secunda!" << endl;
+		cout << "Capacitatea barcii: " << nr_max_ppl << endl;
+		cout << "1. Viteza + 10%; Cost: " << cost_speed << " monede" << endl;
+		cout << "2. Capacitate + 2; Cost: " << cost_capacity << " monede" << endl;
+		cout << "0. Iesire." << endl << endl;
+
+		cin >> opt;
+		while (opt != 0) {
+			if (opt == 1) {
+				if (money - cost_speed > 0) {
+					speed = speed + speed / 10;
+					money = money - cost_speed;
+					cost_speed = cost_speed + cost_speed * 0.85;
+				}
+				else {
+					cout << "Nu ai destule monede pentru aceasta imbunatatire :(" << endl;
+				}
+			}
+
+			if (opt == 2) {
+				if (money - cost_capacity > 0) {
+					nr_max_ppl += 2;
+					money = money - cost_capacity;
+					cost_capacity = cost_capacity + cost_capacity * 0.85;
+				}
+				else {
+					cout << "Nu ai destule monede pentru aceasta imbunatatire :(" << endl;
+				}
+			}
+
+			cout << "Ai " << money << " monede." << endl;
+			cout << "Viteza ta este: " << speed << " noduri pe secunda!" << endl;
+			cout << "Capacitatea barcii: " << nr_max_ppl << endl;
+			cout << "1. Viteza + 10%; Cost: " << cost_speed << " monede" << endl;
+			cout << "2. Capacitate + 2; Cost: " << cost_capacity << " monede" << endl;
+			cout << "0. Iesire." << endl << endl;
+
+			cin >> opt;
+		}
+
+		if (opt == 0) {
+			h = h - 50;
+		}
+
+
+	}
+
+
+	if (abs(k + 320 - pos_x_human * 1.78378378378) < 30) {
+		if ((pos_y_human * 2.14285714286 > 460 && abs(h + 70 - pos_y_human * 2.14285714286) < 72) ||
+			pos_y_human * 2.14285714286 < 160 && abs(h + 70 - pos_y_human * 2.14285714286) < 20 ||
+			(pos_y_human * 2.14285714286 > 160 && pos_y_human * 2.14285714286 < 460 && abs(h + 70 - pos_y_human * 2.14285714286) < 50)) {
+			if (nr_ppl < nr_max_ppl) {
+				scor++;
+				money = money + 5;
+				nr_ppl++;
+				ppl_saved++;
+				timer_ppl = 1470;
+				cout << "Ai salvat un om! In total ai salvat " << ppl_saved << " oameni!" << endl;
+				generate_coord_human();
+			}
+
+
+		}
+	}
+
+	//cout << "k: " << k << "; h: " << h << endl << endl;
+
+	glutSwapBuffers();
+	glFlush();
+}
+
+void reshape(int w, int h)
+{
+	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-20.0, 1500, 0.0, 900.0, -1.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void processNormalKeys(unsigned char key, int x, int y)
+{
+	int ok = 1;
+	alpha = 0;
+	switch (key) {
+	case 'a':
+		if (k > -320.0)
+		{
+			alpha = -speed;
+		}
+		else
+			alpha = 0.0;
+		k = k + alpha * 10;
+		glutPostRedisplay();
+		break;
+	case 'd':
+		if (k < 1000.0)
+		{
+			alpha = speed;
+		}
+		else
+			alpha = 0;
+		k = k + alpha * 10;
+		glutPostRedisplay();
+
+		break;
+	case 'w':
+		if (h < 530.0)
+		{
+			alpha = speed;
+		}
+		else
+			alpha = 0;
+		h = h + alpha * 10;
+		glutPostRedisplay();
+
+		break;
+	case 's':
+		if (h > -70.0)
+		{
+			alpha = -speed;
+		}
+		else
+			alpha = 0;
+		h = h + alpha * 10;
+		glutPostRedisplay();
+
+		break;
+
+	case 't':
+		if (pos_y_human < 530.0)
+			alpha = 1.0;
+		else
+			alpha = 0;
+		pos_y_human = pos_y_human + alpha * 10;
+		glutPostRedisplay();
+
+		break;
+	case 'f':
+		if (pos_x_human > 10.0)
+			alpha = -1.0 / 1.78378378378;
+		else
+			alpha = 0.0;
+		pos_x_human = (pos_x_human + alpha * 10);
+		glutPostRedisplay();
+		break;
+	case 'g':
+		if (pos_y_human > -70.0)
+			alpha = -1.0;
+		else
+			alpha = 0;
+		pos_y_human = pos_y_human + alpha * 10;
+		glutPostRedisplay();
+
+		break;
+
+	case 'h':
+		if (pos_x_human < 740.0)
+			alpha = 1.0 / 1.78378378378;
+		else
+			alpha = 0;
+		pos_x_human = (pos_x_human + alpha * 10);
+		glutPostRedisplay();
+
+		break;
+	}
+
+}
+
+int main(int argc, char** argv)
+{
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	glutInitWindowSize(1500, 900);
+	glutInitWindowPosition(0, 0);
+	glutCreateWindow("Lac cu salvamari");
+	init();
+	glutDisplayFunc(deseneazaScena);
+	glutReshapeFunc(reshape);
+	glutKeyboardFunc(processNormalKeys);
+	glutMainLoop();
+
+	return 0;
+}
